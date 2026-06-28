@@ -1,0 +1,53 @@
+package com.example.Food.Delivery.Platform.Enitity;
+import ch.qos.logback.core.status.Status;
+import jakarta.persistence.*;
+import lombok.*;
+
+import java.time.LocalDateTime;
+import java.util.List;
+
+@Entity
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
+@Table
+@Data
+public class Order {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+
+    private Long id;
+
+    private String orderCode;
+
+    private LocalDateTime orderDate;
+
+    private Status Orderstatus;
+
+    private double subtotal;
+    private double deliveryFee;
+    private double discountAmount;
+    private double totalAmount;
+
+    private String note;
+    private String deliveryNotes;
+
+
+    @ManyToOne
+    private Customer customer;
+
+    @ManyToOne
+    private Restaurant restaurant;
+
+    @OneToMany
+    private List<OrderItem> orderItems;
+
+    @OneToOne
+    private Delivery delivery;
+
+    @OneToOne
+    private Payment payment;
+
+}
