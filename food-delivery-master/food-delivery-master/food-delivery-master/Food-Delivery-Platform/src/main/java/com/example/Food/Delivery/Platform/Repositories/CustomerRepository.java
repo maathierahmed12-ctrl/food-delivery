@@ -1,0 +1,42 @@
+package com.example.Food.Delivery.Platform.Repositories;
+import com.example.Food.Delivery.Platform.Enitity.Customer;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
+
+import java.util.List;
+
+@Repository
+public interface CustomerRepository  extends JpaRepository<Customer,Integer> {
+
+    boolean existsByEmail(String email);
+
+    Customer findByEmail(String email);
+
+    Customer findByCustomerCode(String customerCode);
+
+    @Query("""
+    SELECT DISTINCT c
+    FROM Customer c
+    JOIN c.addresses a
+    WHERE a.city = :city
+""")
+    List<Customer> findByCity(@Param("city") String city);
+
+    @Query("""
+SELECT c FROM Customer c
+WHERE c.active = false
+""")
+    List<Customer> findDeactivatedCustomers();
+
+    @Query("""
+    SELECT c
+    FROM Customer c
+    WHERE LOWER(c.firstName) LIKE LOWER(CONCAT('%', :name, '%'))
+""")
+    Page<Customer> searchByName(@Param("name") String name, Pageable pageable);
+
+}
