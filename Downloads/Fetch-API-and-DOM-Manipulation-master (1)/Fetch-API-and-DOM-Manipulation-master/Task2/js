@@ -1,0 +1,202 @@
+
+const API_URL = "https://jsonplaceholder.typicode.com/posts";
+
+const titleInput = document.getElementById("titleInput");
+const bodyInput = document.getElementById("bodyInput");
+const addBtn = document.getElementById("addBtn");
+const refreshBtn = document.getElementById("refreshBtn");
+const postsContainer = document.getElementById("postsContainer");
+const statusMessage = document.getElementById("statusMessage");
+
+
+function showStatus(message, color = "green") {
+    statusMessage.textContent = message;
+    statusMessage.style.color = color;
+
+    setTimeout(() => {
+        statusMessage.textContent = "";
+    }, 3000);
+}
+
+
+async function fetchPosts() {
+
+    try {
+
+        const response = await fetch(API_URL);
+
+        if (!response.ok) {
+            throw new Error("Failed to fetch posts");
+        }
+
+        const posts = await response.json();
+
+        displayPosts(posts);
+
+    } catch (error) {
+
+        showStatus(error.message, "red");
+
+    }
+
+}
+
+
+function displayPosts(posts) {
+
+    postsContainer.innerHTML = "";
+
+    posts.forEach(post => {
+
+        const card = document.createElement("div");
+        card.classList.add("post-card");
+
+        card.innerHTML = `
+            <h3>${post.title}</h3>
+
+            <p>${post.body}</p>
+
+            <small class="post-id">
+                ID : ${post.id}
+            </small>
+
+            <br>
+
+            <button
+                class="delete-btn"
+                data-id="${post.id}">
+                Delete
+            </button>
+        `;
+
+        postsContainer.appendChild(card);
+
+    });
+
+}
+
+async function addPost() {
+
+    const title = titleInput.value.trim();
+    const body = bodyInput.value.trim();
+
+    if (title === "" || body === "") {
+
+        showStatus("Please fill in all fields", "red");
+        return;
+
+    }
+
+    const postData = {
+        title,
+        body
+    };
+
+    try {
+
+        const response = await fetch(API_URL, {
+
+            method: "POST",
+
+            headers: {
+                "Content-Type":
+                "application/json; charset=UTF-8"
+            },
+
+            body: JSON.stringify(postData)
+
+        });
+
+        if (!response.ok) {
+
+            throw new Error("Failed to add post");
+
+        }
+
+        const newPost = await response.json();
+
+        showStatus("Post added successfully");
+
+        titleInput.value = "";
+        bodyInput.value = "";
+
+
+        const card = document.createElement("div");
+
+        card.classList.add("post-card");
+
+        card.innerHTML = `
+            <h3>${newPost.title}</h3>
+
+            <p>${newPost.body}</p>
+
+            <small class="post-id">
+                ID : ${newPost.id}
+            </small>
+
+            <br>
+
+            <button
+                class="delete-btn"
+                data-id="${newPost.id}">
+                Delete
+            </button>
+        `;
+
+        postsContainer.prepend(card);
+
+    } catch (error) {
+
+        showStatus(error.message, "red");
+
+    }
+
+}
+
+async function deletePost(postId, postElement) {
+
+    try {
+
+        const response = await fetch(`${API_URL}/${postId}`, {
+
+            method: "DELETE"
+
+        });
+
+        if (!response.ok) {
+
+            throw new Error("Delete failed");
+
+        }
+
+        postElement.remove();
+
+        showStatus("Post deleted successfully");
+
+    } catch (error) {
+
+        showStatus(error.message, "red");
+
+    }
+
+}
+
+addBtn.addEventListener("click", addPost);
+
+refreshBtn.addEventListener("click", fetchPosts);
+
+postsContainer.addEventListener("click", function (event) {
+
+    if (event.target.classList.contains("delete-btn")) {
+
+        const postId = event.target.dataset.id;
+
+        const postCard = event.target.closest(".post-card");
+
+        deletePost(postId, postCard);
+
+    }
+
+});
+
+fetchPosts();
